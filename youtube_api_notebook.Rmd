@@ -2,6 +2,9 @@
 title: "R Notebook"
 output: html_notebook
 ---
+```{r}
+# this is a python notebook project based on https://youtu.be/D56_Cx36oGY
+```
 
 ```{python}
 import api_holder # this module holds my api key outside of the main .py script for .gitignore purposes
@@ -126,10 +129,10 @@ df
 ```
 
 ```{python}
+# define main() function
+# this function requests information from youtube and returns a json object of youtube data
 def main():
-
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-
     api_service_name = "youtube"
     api_version = "v3"
     youtube = googleapiclient.discovery.build(
@@ -137,25 +140,20 @@ def main():
 
     request = youtube.channels().list(
         part="snippet,contentDetails,statistics",
-        # id="UC_x5XG1OV2P6uZZ5FSM9Ttw" # test channel id
-        # id="UC_x5XG1OV2P6uZZ5FSM9Ttw"
         id=','.join(channel_ids)
     )
     response = request.execute()
-    response = JSON(response)
     return response
 ```
 
 
 ```{python}
-def get_channel_stats(youtube, channel_ids):
+# define get_channel_stats() function
+# this function requests information from 
+
+def get_channel_stats(channel_ids):
     all_data = []
-    
-    request = youtube.channels().list(
-        part="snippet,contentDetails,statistics",
-        id=','.join(channel_ids)
-    )
-    response = request.execute()
+    main()
     
     # loop through items
     for item in response['items']:
@@ -174,6 +172,15 @@ main()
 ```
 ```{python}
 get_channel_stats(youtube, channel_ids)
+```
+```{python}
+request = youtube.playlistItems().list(
+    part="snippet,contentDetails",
+    playlistID="UUfi-0Ks4Y7ak5cXxuhqVNPQ"
+)
+response = request.execute()
+print(response)
+
 ```
 
 
