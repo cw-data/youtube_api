@@ -1,0 +1,179 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{python}
+import api_holder # this module holds my api key outside of the main .py script for .gitignore purposes
+
+api_key = api_holder.api() # call the function to return the api key, save to variable for use later
+# print(api_key) # test
+
+
+# YouTube api call from:
+# https://developers.google.com/youtube/v3/docs/channels/list?apix=true
+
+# -*- coding: utf-8 -*-
+
+# Sample Python code for youtube.channels.list
+# See instructions for running these code samples locally:
+# https://developers.google.com/explorer-help/code-samples#python
+
+import os
+
+import google_auth_oauthlib.flow
+import googleapiclient.discovery
+import googleapiclient.errors
+import pandas as pd
+from IPython.display import JSON
+import json
+```
+
+```{python}
+scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
+
+channel_ids = ["UCfi-0Ks4Y7ak5cXxuhqVNPQ"] # list of channel ids
+
+def main():
+    # Disable OAuthlib's HTTPS verification when running locally.
+    # *DO NOT* leave this option enabled in production.
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+    api_service_name = "youtube"
+    api_version = "v3"
+    # client_secrets_file = "YOUR_CLIENT_SECRET_FILE.json"
+
+    # Get credentials and create an API client
+    # flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+    #     client_secrets_file, scopes)
+    # credentials = flow.run_console()
+    youtube = googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey=api_key)
+
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        # id="UC_x5XG1OV2P6uZZ5FSM9Ttw" # test channel id
+        # id="UC_x5XG1OV2P6uZZ5FSM9Ttw"
+        id=','.join(channel_ids)
+    )
+    response = request.execute()
+    return response, youtube
+    
+def get_channel_stats(youtube, channel_ids):
+    all_data = []
+    
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        id=','.join(channel_ids)
+    )
+    response = request.execute()
+    
+    # loop through items
+    for item in reponse['items']:
+        data = {'channelName': item['snippet']['title'],
+                'subscribers': item['statistics']['subscriberCount'],
+                'views': item['statistics']['viewCount'],
+                'totalViews': item['statistics']['videoCount'],
+                'playlistId': item['contentDetails']['relatedPlaylists']['uploads']
+                }
+        all_data.append(data)
+    return(pd.DataFrame(all_data))
+
+channel_stats = get_channel_stats(youtube, channel_ids)
+```
+
+
+```{python}
+import os
+
+import google_auth_oauthlib.flow
+import googleapiclient.discovery
+import googleapiclient.errors
+import pandas as pd
+from IPython.display import JSON
+import json
+
+import api_holder # this module holds my api key outside of the main .py script for .gitignore purposes
+api_key = api_holder.api()
+api_service_name = "youtube"
+api_version = "v3"
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+youtube = googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey=api_key)
+request = youtube.channels().list(
+    part="snippet,contentDetails,statistics",
+    id=','.join(channel_ids)
+    )
+response = request.execute()
+print(response)
+```
+
+
+```{python}
+all_data = []
+# 
+for item in response['items']:
+    data = {'channelName': item['snippet']['title'],
+            'subscribers': item['statistics']['subscriberCount'],
+            'views': item['statistics']['viewCount'],
+            'totalViews': item['statistics']['videoCount'],
+            'playlistId': item['contentDetails']['relatedPlaylists']['uploads']
+            }
+    all_data.append(data)
+#     
+df = pd.DataFrame(all_data)
+df
+```
+
+```{python}
+def main():
+
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+    api_service_name = "youtube"
+    api_version = "v3"
+    youtube = googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey=api_key)
+
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        # id="UC_x5XG1OV2P6uZZ5FSM9Ttw" # test channel id
+        # id="UC_x5XG1OV2P6uZZ5FSM9Ttw"
+        id=','.join(channel_ids)
+    )
+    response = request.execute()
+    response = JSON(response)
+    return response
+```
+
+
+```{python}
+def get_channel_stats(youtube, channel_ids):
+    all_data = []
+    
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        id=','.join(channel_ids)
+    )
+    response = request.execute()
+    
+    # loop through items
+    for item in response['items']:
+        data = {'channelName': item['snippet']['title'],
+                'subscribers': item['statistics']['subscriberCount'],
+                'views': item['statistics']['viewCount'],
+                'totalViews': item['statistics']['videoCount'],
+                'playlistId': item['contentDetails']['relatedPlaylists']['uploads']
+                }
+        all_data.append(data)
+    return(pd.DataFrame(all_data))
+```
+
+```{python}
+main()
+```
+```{python}
+get_channel_stats(youtube, channel_ids)
+```
+
+
