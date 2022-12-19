@@ -128,6 +128,20 @@ df = pd.DataFrame(all_data)
 df
 ```
 
+
+```{python}
+import os
+
+import google_auth_oauthlib.flow
+import googleapiclient.discovery
+import googleapiclient.errors
+import pandas as pd
+from IPython.display import JSON
+import json
+
+import api_holder # this module holds my api key outside of the main .py script for .gitignore purposes
+```
+
 ```{python}
 # define main() function
 # this function requests information from youtube and returns a json object of youtube data
@@ -153,34 +167,46 @@ def main():
 
 def get_channel_stats(channel_ids):
     all_data = []
-    main()
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+    api_service_name = "youtube"
+    api_version = "v3"
+    youtube = googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey=api_key)
+
+    request = youtube.channels().list(
+        part="snippet,contentDetails,statistics",
+        id=','.join(channel_ids)
+    )
+    response = request.execute()
     
     # loop through items
     for item in response['items']:
         data = {'channelName': item['snippet']['title'],
                 'subscribers': item['statistics']['subscriberCount'],
                 'views': item['statistics']['viewCount'],
-                'totalViews': item['statistics']['videoCount'],
+                'totalVideos': item['statistics']['videoCount'],
                 'playlistId': item['contentDetails']['relatedPlaylists']['uploads']
                 }
         all_data.append(data)
-    return(pd.DataFrame(all_data))
+    return(pd.DataFrame(all_data), JSON(all_data))
 ```
 
 ```{python}
 main()
 ```
 ```{python}
-get_channel_stats(youtube, channel_ids)
+results = get_channel_stats(channel_ids)
 ```
 ```{python}
-request = youtube.playlistItems().list(
-    part="snippet,contentDetails",
-    playlistID="UUfi-0Ks4Y7ak5cXxuhqVNPQ"
-)
-response = request.execute()
-print(response)
+print(results[0])
+```
+```{python}
+print(json.dumps(results[1], indent=4, sort_keys=True))
+```
 
+
+```{python}
+json.dumps(results[1])
 ```
 
 
